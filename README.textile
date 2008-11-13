@@ -3,57 +3,65 @@ h1. ModelTranslations
 Minimal implementation of Globalize2 style model translations. Rails 2.2 is
 required.
 
-pre. class Post < ActiveRecord::Base
-  translates :title, :text
-end
+<pre><code>
+  class Post < ActiveRecord::Base
+    translates :title, :text
+  end
+</code></pre>
 
 Allows you to translate values for the attributes :title and :text per locale:
 
-pre. I18n.locale = :'en-US'
-post.title # ModelTranslations rocks!
-I18n.locale = :'sv-SE'
-post.title # Rockar fett!
+<pre><code>
+  I18n.locale = :'en-US'
+  post.title # ModelTranslations rocks!
+  I18n.locale = :'sv-SE'
+  post.title # Rockar fett!
+</code></pre>
 
 In order to make this work you need to take care of creating the appropriate
 database migrations manually. The migration for the above Post model could look
 like this:
 
-pre. class CreatePosts < ActiveRecord::Migration
-  def self.up
-    create_table :posts do |t|
-      t.timestamps
+<pre><code>
+  class CreatePosts < ActiveRecord::Migration
+    def self.up
+      create_table :posts do |t|
+        t.timestamps
+      end
+      create_table :post_translations do |t|
+        t.string     :locale
+        t.references :post
+        t.string     :title
+        t.text       :text
+        t.timestamps
+      end
     end
-    create_table :post_translations do |t|
-      t.string     :locale
-      t.references :post
-      t.string     :title
-      t.text       :text
-      t.timestamps
+    def self.down
+      drop_table :posts
+      drop_table :post_translations
     end
   end
-  def self.down
-    drop_table :posts
-    drop_table :post_translations
-  end
-end
+</code></pre>
 
 To migrate from a model with existing attributes to one with translated
 attributes the migration could look like this.
 
-pre. class RemoveTitleTextFromPosts < ActiveRecord::Migration
-  def self.up
-    [:title, :text].each do |attribute|
-      Post.all.each{|post| post.update_attribute(attribute, post.read_attribute(attribute)) }
-      remove_column :post, attribute
+<pre><code>
+  class RemoveTitleTextFromPosts < ActiveRecord::Migration
+    def self.up
+      [:title, :text].each do |attribute|
+        Post.all.each{|post| post.update_attribute(attribute, post.read_attribute(attribute)) }
+        remove_column :post, attribute
+      end
+    end
+    def self.down
+      add_column :post, :title, :string
+      add_column :post, :text, :text
+      [:title, :text].each do |attribute|
+        Post.all.each{|post| post.write_attribute(attribute, post.send(attribute)); post.save}
+      end
     end
   end
-  def self.down
-    add_column :post, :title, :string
-    add_column :post, :text, :text
-    [:title, :text].each do |attribute|
-      Post.all.each{|post| post.write_attribute(attribute, post.send(attribute)); post.save}
-    end
-  end
-end
+</code></pre>
 
 Copyright (c) 2008 Jan Andersson, released under the MIT license
