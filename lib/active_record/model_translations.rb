@@ -8,25 +8,25 @@ module ActiveRecord
       def translates(*attributes)
         attributes = attributes.map{|attribute| attribute.to_sym}
 
-        class_eval do
-          include ActiveRecord::ModelTranslations::InstanceMethods
-        end
+        unless included_modules.include? InstanceMethods
+          include InstanceMethods
 
-        define_method :translated_attributes do
-          @translated_attributes
-        end
+          define_method :translated_attributes do
+            @translated_attributes
+          end
 
-        after_save do |record|
-          record.update_translations!
-        end
+          after_save do |record|
+            record.update_translations!
+          end
 
-        define_method :locales do
-          return [] if new_record?
-          type = self.class.to_s.downcase
-          statement = "SELECT * FROM #{type}_translations WHERE #{type}_id = #{id}"
-          logger.info(statement)
-          translations = ActiveRecord::Base.connection.select_all(statement)
-          translations.map{|t| t['locale'].to_sym}.select{|locale| I18n.locales.include?(locale)}
+          define_method :locales do
+            return [] if new_record?
+            type = self.class.to_s.downcase
+            statement = "SELECT * FROM #{type}_translations WHERE #{type}_id = #{id}"
+            logger.debug(statement)
+            translations = ActiveRecord::Base.connection.select_all(statement)
+            translations.map{|t| t['locale'].to_sym}.select{|locale| I18n.locales.include?(locale)}
+          end
         end
 
         attributes.each do |attribute|
@@ -41,7 +41,7 @@ module ActiveRecord
             return nil if new_record?
             type = self.class.to_s.downcase
             statement = "SELECT * FROM #{type}_translations WHERE #{type}_id = #{id}"
-            logger.info(statement)
+            logger.debug(statement)
             translations = ActiveRecord::Base.connection.select_all(statement)
             translation = translations.find{|t| t["locale"] == I18n.locale.to_s}
             translation = translations.find{|t| t["locale"] == I18n.default_locale.to_s} unless translation
@@ -62,7 +62,7 @@ module ActiveRecord
         return unless @translated_attributes and not @translated_attributes.empty?
         type = self.class.to_s.downcase
         statement = "SELECT * FROM #{type}_translations WHERE #{type}_id = #{id} AND locale = '#{I18n.locale}'"
-        logger.info(statement)
+        logger.debug(statement)
         translation = ActiveRecord::Base.connection.select_all(statement).first
         if translation
           statement = "UPDATE #{type}_translations SET "
@@ -82,7 +82,7 @@ module ActiveRecord
             "\"#{v}\""
           end.join(', ') + ")"
         end
-        logger.info(statement)
+        logger.debug(statement)
         ActiveRecord::Base.connection.execute(statement)
       end
     end
