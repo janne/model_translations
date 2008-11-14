@@ -16,6 +16,10 @@ module ActiveRecord
           @translated_attributes
         end
 
+        after_save do |record|
+          record.update_translations!
+        end
+
         define_method :locales do
           return [] if new_record?
           type = self.class.to_s.downcase
@@ -54,36 +58,27 @@ module ActiveRecord
     end
 
     module InstanceMethods
-      def save(perform_validation=true)
-        success = perform_validation ? super : super(false)
-        if success and @translated_attributes and not @translated_attributes.empty?
-          store_translations(self, @translated_attributes) 
-        end
-        success
-      end
-
-      private
-
-      def store_translations(model, attributes)
-        type = model.class.to_s.downcase
+      def update_translations!
+        return unless @translated_attributes and not @translated_attributes.empty?
+        type = self.class.to_s.downcase
         statement = "SELECT * FROM #{type}_translations WHERE #{type}_id = #{id} AND locale = '#{I18n.locale}'"
         logger.info(statement)
         translation = ActiveRecord::Base.connection.select_all(statement).first
         if translation
           statement = "UPDATE #{type}_translations SET "
           statement << "updated_at = '#{DateTime.now.to_s(:db)}', "
-          statement << attributes.map do |key, value|
+          statement << @translated_attributes.map do |key, value|
             v = value ? value.gsub('"', '\"') : nil
             "#{key} = \"#{v}\""
           end.join(', ')
           statement << " WHERE id = #{translation['id']}"
         else
-          keys = attributes.keys
+          keys = @translated_attributes.keys
           statement = "INSERT INTO #{type}_translations "
           statement << "(#{type}_id, locale, created_at, updated_at, " + keys.join(', ') + ") "
           statement << "VALUES (#{id}, '#{I18n.locale}', '#{DateTime.now.to_s(:db)}', '#{DateTime.now.to_s(:db)}', "
           statement << keys.map do |key|
-            v = attributes[key] ? attributes[key].gsub('"', '\"') : nil
+            v = @translated_attributes[key] ? @translated_attributes[key].gsub('"', '\"') : nil
             "\"#{v}\""
           end.join(', ') + ")"
         end
