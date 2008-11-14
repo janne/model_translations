@@ -6,6 +6,8 @@ module ActiveRecord
 
     module ClassMethods
       def translates(*attributes)
+        attributes = attributes.map{|attribute| attribute.to_sym}
+
         class_eval do
           include ActiveRecord::ModelTranslations::InstanceMethods
         end
@@ -26,7 +28,7 @@ module ActiveRecord
         attributes.each do |attribute|
           define_method "#{attribute}=".to_sym do |value|
             @translated_attributes ||= {}
-            @translated_attributes[attribute.to_sym] = value
+            @translated_attributes[attribute] = value
           end
 
           define_method attribute do
@@ -42,7 +44,7 @@ module ActiveRecord
             translation = translations.first unless translation
             if translation
               translation.
-                select{|k, v| attributes.include?(k.to_sym)}.
+                select{|k, v| attributes.include?(k.to_sym) && !@translated_attributes.keys.include?(k.to_sym)}.
                 each{|k, v| @translated_attributes[k.to_sym] = v}
             end
             @translated_attributes[attribute]
