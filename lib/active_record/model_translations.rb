@@ -21,7 +21,7 @@ module ActiveRecord
 
           define_method :locales do
             return [] if new_record?
-            type = self.class.to_s.downcase
+            type = self.class.to_s.underscore
             statement = "SELECT * FROM #{type}_translations WHERE #{type}_id = #{id}"
             logger.debug(statement)
             translations = ActiveRecord::Base.connection.select_all(statement)
@@ -39,7 +39,7 @@ module ActiveRecord
             @translated_attributes ||= {}
             return @translated_attributes[attribute] if @translated_attributes[attribute]
             return nil if new_record?
-            type = self.class.to_s.downcase
+            type = self.class.to_s.underscore
             statement = "SELECT * FROM #{type}_translations WHERE #{type}_id = #{id}"
             logger.debug(statement)
             translations = ActiveRecord::Base.connection.select_all(statement)
@@ -60,7 +60,7 @@ module ActiveRecord
     module InstanceMethods
       def update_translations!
         return unless @translated_attributes and not @translated_attributes.empty?
-        type = self.class.to_s.downcase
+        type = self.class.to_s.underscore
         statement = "SELECT * FROM #{type}_translations WHERE #{type}_id = #{id} AND locale = '#{I18n.locale}'"
         logger.debug(statement)
         translation = ActiveRecord::Base.connection.select_all(statement).first
