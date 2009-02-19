@@ -12,9 +12,9 @@ required.
 Allows you to translate values for the attributes :title and :text per locale:
 
 <pre><code>
-  I18n.locale = :'en-US'
+  I18n.locale = :en
   post.title # ModelTranslations rocks!
-  I18n.locale = :'sv-SE'
+  I18n.locale = :sv
   post.title # Rockar fett!
 </code></pre>
 
