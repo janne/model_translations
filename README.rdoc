@@ -1,13 +1,13 @@
-h1. ModelTranslations
+= ModelTranslations
 
 Minimal implementation of Globalize2 style model translations. Rails 2.2 is
 required.
 
-h2. Installation
+== Installation
 
   script/plugin install git://github.com/janne/model_translations.git
 
-h2. Implementation
+== Implementation
 
   class Post < ActiveRecord::Base
     translates :title, :text
@@ -62,7 +62,7 @@ attributes the migration could look like this.
     end
   end
 
-h2. Advanced Querying
+== Advanced Querying
 
 All models that have translations are hooked up with a has_many :model_translations 
 association for their corresponding translation table. Use this to your advantage. 
@@ -75,15 +75,16 @@ Note that the following example requires Rails 2.3 since default_scope is used.
     default_scope :include => :model_translations
     
     named_scope :translated, lambda { { :conditions => { 'post_translations.locale' => I18n.locale.to_s } } }
-    named_scope :by_title, :order => 'post_translations.title'
+    named_scope :ordered_by_title, :order => 'post_translations.title'
     named_scope :with_title, lambda { |title| { :conditions => { 'post_translations.title' => title } } }
   end
 
-  Post.translated.by_title # All posts with the current locale sorted on title
+  Post.translated.ordered_by_title # All posts with the current locale sorted on title
   Post.with_title('My translated title') # Equivalent to Post.find_all_by_title
 
 As you can see including the model_translations on all querys by default gives 
 us (apart from reducing the number of querys to the database) the possibility
 of using the post_translations table for further query customization.
+
 
 Copyright (c) 2008 Jan Andersson, released under the MIT license
