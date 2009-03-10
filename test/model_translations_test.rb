@@ -25,6 +25,8 @@ end
 
 class Post < ActiveRecord::Base
   translates :title, :text
+  
+  validates_presence_of :title
 end
 
 class ModelTranslationsTest < ActiveSupport::TestCase
@@ -75,5 +77,13 @@ class ModelTranslationsTest < ActiveSupport::TestCase
     
     Post.destroy_all
     assert_equal 0, PostTranslation.count
+  end
+  
+  test 'validates_presence_of should work' do
+    post = Post.new
+    assert_equal false, post.valid?
+    
+    post.title = 'English title'
+    assert_equal true, post.valid?
   end
 end
