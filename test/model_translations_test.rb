@@ -56,12 +56,12 @@ class ModelTranslationsTest < ActiveSupport::TestCase
     assert Post.first.title == 'English title'
   end
 
-  test "locales method returns the availible languages on a model" do
-    assert_equal ['en'], Post.first.locales
+  test "locales method returns the available languages on a model" do
+    assert_equal [:en], Post.first.locales
     
     I18n.locale = :sv
     Post.first.update_attribute :title, 'Svensk titel'
-    assert_equal ['en', 'sv'], Post.first.locales
+    assert_equal [:en, :sv], Post.first.locales
   end
 
   test "parent has_many model_translations" do

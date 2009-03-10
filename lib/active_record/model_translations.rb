@@ -52,7 +52,7 @@ module ActiveRecord
 
     module InstanceMethods
       def locales
-        model_translations.collect { |t| t.locale }
+        model_translations.collect { |t| t.locale.to_sym }
       end
   
       def translated_attributes
