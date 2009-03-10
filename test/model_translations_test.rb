@@ -56,24 +56,24 @@ class ModelTranslationsTest < ActiveSupport::TestCase
     assert Post.first.title == 'English title'
   end
 
-	test "locales method returns the availible languages on a model" do
-		assert_equal ['en'], Post.first.locales
-		
+  test "locales method returns the availible languages on a model" do
+    assert_equal ['en'], Post.first.locales
+    
     I18n.locale = :sv
     Post.first.update_attribute :title, 'Svensk titel'
-		assert_equal ['en', 'sv'], Post.first.locales
-	end
+    assert_equal ['en', 'sv'], Post.first.locales
+  end
 
-	test "parent has_many model_translations" do
-		assert_equal PostTranslation, Post.first.model_translations.first.class
-	end
+  test "parent has_many model_translations" do
+    assert_equal PostTranslation, Post.first.model_translations.first.class
+  end
 
-	test "translations are deleted when parent is destroyed" do
+  test "translations are deleted when parent is destroyed" do
     I18n.locale = :sv
     Post.first.update_attribute :title, 'Svensk titel'
-		assert_equal 2, PostTranslation.count
-		
-		Post.destroy_all
-		assert_equal 0, PostTranslation.count
-	end
+    assert_equal 2, PostTranslation.count
+    
+    Post.destroy_all
+    assert_equal 0, PostTranslation.count
+  end
 end

@@ -5,7 +5,7 @@ required.
 
 h2. Installation
 
-	script/plugin install git://github.com/janne/model_translations.git
+  script/plugin install git://github.com/janne/model_translations.git
 
 h2. Implementation
 
@@ -69,18 +69,18 @@ association for their corresponding translation table. Use this to your advantag
 
 Note that the following example requires Rails 2.3 since default_scope is used.
 
-	class Post < ActiveRecord::Base
+  class Post < ActiveRecord::Base
     translates :title, :text
-		
-		default_scope :include => :model_translations
-		
-		named_scope :translated, lambda { { :conditions => { 'post_translations.locale' => I18n.locale.to_s } } }
-		named_scope :by_title, :order => 'post_translations.title'
-		named_scope :with_title, lambda { |title| { :conditions => { 'post_translations.title' => title } } }
+    
+    default_scope :include => :model_translations
+    
+    named_scope :translated, lambda { { :conditions => { 'post_translations.locale' => I18n.locale.to_s } } }
+    named_scope :by_title, :order => 'post_translations.title'
+    named_scope :with_title, lambda { |title| { :conditions => { 'post_translations.title' => title } } }
   end
 
-	Post.translated.by_title # All posts with the current locale sorted on title
-	Post.with_title('My translated title') # Equivalent to Post.find_all_by_title
+  Post.translated.by_title # All posts with the current locale sorted on title
+  Post.with_title('My translated title') # Equivalent to Post.find_all_by_title
 
 As you can see including the model_translations on all querys by default gives 
 us (apart from reducing the number of querys to the database) the possibility
