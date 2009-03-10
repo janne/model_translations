@@ -45,9 +45,9 @@ class ModelTranslationsTest < ActiveSupport::TestCase
   test "allow translation" do
     I18n.locale = :sv
     Post.first.update_attribute :title, 'Svensk titel'
-    assert Post.first.title == 'Svensk titel'
+    assert_equal 'Svensk titel', Post.first.title
     I18n.locale = :en
-    assert Post.first.title == 'English title'
+    assert_equal 'English title', Post.first.title
   end
 
   test "assert fallback to default" do
@@ -55,4 +55,25 @@ class ModelTranslationsTest < ActiveSupport::TestCase
     I18n.locale = :sv
     assert Post.first.title == 'English title'
   end
+
+	test "locales method returns the availible languages on a model" do
+		assert_equal ['en'], Post.first.locales
+		
+    I18n.locale = :sv
+    Post.first.update_attribute :title, 'Svensk titel'
+		assert_equal ['en', 'sv'], Post.first.locales
+	end
+
+	test "parent has_many model_translations" do
+		assert_equal PostTranslation, Post.first.model_translations.first.class
+	end
+
+	test "translations are deleted when parent is destroyed" do
+    I18n.locale = :sv
+    Post.first.update_attribute :title, 'Svensk titel'
+		assert_equal 2, PostTranslation.count
+		
+		Post.destroy_all
+		assert_equal 0, PostTranslation.count
+	end
 end

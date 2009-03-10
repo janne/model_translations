@@ -3,26 +3,27 @@ h1. ModelTranslations
 Minimal implementation of Globalize2 style model translations. Rails 2.2 is
 required.
 
-<pre><code>
+h2. Installation
+
+	script/plugin install git://github.com/janne/model_translations.git
+
+h2. Implementation
+
   class Post < ActiveRecord::Base
     translates :title, :text
   end
-</code></pre>
 
 Allows you to translate values for the attributes :title and :text per locale:
 
-<pre><code>
   I18n.locale = :en
   post.title # ModelTranslations rocks!
   I18n.locale = :sv
   post.title # Rockar fett!
-</code></pre>
 
 In order to make this work you need to take care of creating the appropriate
 database migrations manually. The migration for the above Post model could look
 like this:
 
-<pre><code>
   class CreatePosts < ActiveRecord::Migration
     def self.up
       create_table :posts do |t|
@@ -41,12 +42,10 @@ like this:
       drop_table :post_translations
     end
   end
-</code></pre>
 
 To migrate from a model with existing attributes to one with translated
 attributes the migration could look like this.
 
-<pre><code>
   class RemoveTitleTextFromPosts < ActiveRecord::Migration
     def self.up
       [:title, :text].each do |attribute|
@@ -62,6 +61,29 @@ attributes the migration could look like this.
       end
     end
   end
-</code></pre>
+
+h2. Advanced Querying
+
+All models that have translations are hooked up with a has_many :model_translations 
+association for their corresponding translation table. Use this to your advantage. 
+
+Note that the following example requires Rails 2.3 since default_scope is used.
+
+	class Post < ActiveRecord::Base
+    translates :title, :text
+		
+		default_scope :include => :model_translations
+		
+		named_scope :translated, lambda { { :conditions => { 'post_translations.locale' => I18n.locale.to_s } } }
+		named_scope :by_title, :order => 'post_translations.title'
+		named_scope :with_title, lambda { |title| { :conditions => { 'post_translations.title' => title } } }
+  end
+
+	Post.translated.by_title # All posts with the current locale sorted on title
+	Post.with_title('My translated title') # Equivalent to Post.find_all_by_title
+
+As you can see including the model_translations on all querys by default gives 
+us (apart from reducing the number of querys to the database) the possibility
+of using the post_translations table for further query customization.
 
 Copyright (c) 2008 Jan Andersson, released under the MIT license
