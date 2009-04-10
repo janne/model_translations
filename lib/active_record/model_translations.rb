@@ -17,7 +17,7 @@ module ActiveRecord
         
         include InstanceMethods
 
-        has_many :model_translations, :class_name => translation_class_name, :dependent => :delete_all
+        has_many :model_translations, :class_name => translation_class_name, :dependent => :delete_all , :order => 'created_at desc'
         after_save :update_translations!
       end
       
