@@ -25,7 +25,6 @@ end
 
 class Post < ActiveRecord::Base
   translates :title, :text
-  
   validates_presence_of :title
 end
 
@@ -77,5 +76,13 @@ class ModelTranslationsTest < ActiveSupport::TestCase
     
     post.title = 'English title'
     assert_equal true, post.valid?
+  end
+
+  test 'temporary locale switch should not clear changes' do
+    I18n.locale = :sv
+    post = Post.first
+    post.text = 'Svensk text'
+    post.title.blank?
+    assert_equal 'Svensk text', post.text
   end
 end
